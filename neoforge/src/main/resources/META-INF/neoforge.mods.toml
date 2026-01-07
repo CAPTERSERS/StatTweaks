@@ -1,0 +1,38 @@
+modLoader = "javafml"
+loaderVersion = "[2,)"
+#issueTrackerURL = ""
+license = "MIT"
+
+[[mods]]
+modId = "stattweaks"
+version = "${version}"
+displayName = "StatTweaks"
+authors = "Captersers"
+description = '''
+A mod focused on dynamically modifying vanilla item attributes. Fully compatible with content from other mods, it allows you to easily adjust parameters such as damage, speed, durability, armor, and more - making it ideal for custom modpacks and advanced balance tuning.
+'''
+#logoFile = ""
+
+[[dependencies.stattweaks]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.stattweaks]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.stattweaks]]
+modId = "architectury"
+type = "required"
+versionRange = "[13.0.8,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[mixins]]
+config = "stattweaks.mixins.json"

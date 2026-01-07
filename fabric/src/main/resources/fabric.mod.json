@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "stattweaks",
+  "version": "${version}",
+  "name": "StatTweaks",
+  "description": "A mod focused on dynamically modifying vanilla item attributes. Fully compatible with content from other mods, it allows you to easily adjust parameters such as damage, speed, durability, armor, and more - making it ideal for custom modpacks and advanced balance tuning.",
+  "authors": [
+    "Captersers"
+  ],
+  "contact": {
+    "homepage": ""
+  },
+  "license": "MIT",
+  "icon": "assets/stattweaks/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "net.captersers.stattweaks.fabric.StattweaksFabric"
+    ],
+    "client": [
+      "net.captersers.stattweaks.fabric.client.StattweaksFabricClient"
+    ]
+  },
+  "mixins": [
+    "stattweaks.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.18.4",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "architectury": ">=13.0.8",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}

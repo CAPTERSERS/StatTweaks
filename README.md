@@ -32,7 +32,7 @@ We are actively working on StatTweaks!
 * Stay tuned for updates to expand your customization options.
 
 ## ⚙️ Configuration
-The configuration uses a simple Key-Value JSON format located at `config/stattweaks/config.json`.
+The configuration uses a simple Key-Value JSON format located at `config/CPT_StatTweaks_Config.json`.
 
 You simply refer to the item by its **Registry Name** (e.g., `minecraft:diamond_sword`) and list the stats you want to change.
 

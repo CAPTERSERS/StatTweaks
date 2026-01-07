@@ -11,7 +11,7 @@ authors = "Captersers"
 description = '''
 A mod focused on dynamically modifying vanilla item attributes. Fully compatible with content from other mods, it allows you to easily adjust parameters such as damage, speed, durability, armor, and more - making it ideal for custom modpacks and advanced balance tuning.
 '''
-#logoFile = ""
+logoFile = "assets/stattweaks/icon.png"
 
 [[dependencies.stattweaks]]
 modId = "neoforge"

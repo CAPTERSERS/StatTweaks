@@ -35,10 +35,9 @@ The configuration file is located at `config/CPT_StatTweaks_Config.json`.
 ### 1. Item Adjustments
 You can modify attributes and components. The mod prioritizes specific IDs over tags.
 
-#### Special Attributes:
-- `stattweaks:durability`: Maximum durability.
-- `stattweaks:efficiency`: Mining speed for tools.
-- `stattweaks:stack_size`: Maximum stack size (1-99).
+#### Special Attributes (for `attributes` section):
+- `stattweaks:durability`: Maximum durability of the item.
+- `stattweaks:efficiency`: Mining speed for tools (updates tool mining rules).
 
 #### Item Example:
 ```json
@@ -50,7 +49,8 @@ You can modify attributes and components. The mod prioritizes specific IDs over 
   },
   "components": {
     "minecraft:rarity": "rare",
-    "minecraft:fire_resistant": {}
+    "minecraft:fire_resistant": {},
+    "minecraft:max_stack_size": 32
   }
 }
 ```
@@ -69,7 +69,73 @@ Modify the base attributes of any living creature.
 }
 ```
 
-### 3. Mod Compatibility 🧩
+### 3. Available Attributes (for Items and Entities)
+
+| Attribute ID | What it does | Min | Max | Default |
+|---|---|---|---|---|
+| `minecraft:generic.max_health` | Maximum health points | 0.0 | 1024.0 | 20.0 |
+| `minecraft:generic.movement_speed` | Walking/swimming speed | 0.0 | 1.0 | 0.1 |
+| `minecraft:generic.attack_damage` | Melee damage dealt | 0.0 | 2048.0 | 1.0 |
+| `minecraft:generic.attack_speed` | Attack cooldown (attacks per second) | 0.0 | 1024.0 | 4.0 |
+| `minecraft:generic.armor` | Armor defense points | 0.0 | 30.0 | 0.0 |
+| `minecraft:generic.armor_toughness` | Armor toughness (reduces damage from strong hits) | 0.0 | 20.0 | 0.0 |
+| `minecraft:generic.knockback_resistance` | Resistance to knockback | 0.0 | 1.0 | 0.0 |
+| `minecraft:generic.flying_speed` | Flight speed (for flying mobs/creative mode) | 0.0 | 1024.0 | 0.4 |
+| `minecraft:generic.follow_range` | Detection range for mobs | 0.0 | 2048.0 | 16.0 |
+| `minecraft:generic.luck` | Luck bonus (loot tables) | -1024.0 | 1024.0 | 0.0 |
+| `minecraft:generic.step_height` | Step height (how high the entity can climb) | 0.0 | 10.0 | 0.6 |
+| `minecraft:generic.water_movement_efficiency` | Water movement speed multiplier | 0.0 | 1.0 | 0.0 |
+| `minecraft:generic.burning_time_scale` | Fire damage frequency modifier | 0.0 | 1024.0 | 1.0 |
+| `minecraft:generic.explosion_knockback_resistance` | Reduces explosion knockback | 0.0 | 1.0 | 0.0 |
+| `minecraft:generic.temperature_modifier` | Temperature modifier for cold/heat effects | -1024.0 | 1024.0 | 0.0 |
+| `minecraft:horse.jump_strength` | Jump strength for horses | 0.0 | 2.0 | 0.7 |
+
+**Note:** You can also use attributes from other mods by using their ResourceLocation (e.g., `modid:custom_attribute`).
+
+### 4. Available Data Components (for Items)
+
+| Component ID | What it does | Example Value |
+|---|---|---|
+| `minecraft:max_stack_size` | Maximum stack size (1-64) | `32` |
+| `minecraft:max_damage` | Maximum durability | `1561` |
+| `minecraft:damage` | Current damage/durability left | `0` |
+| `minecraft:rarity` | Item rarity/color | `"rare"` (common, uncommon, rare, epic) |
+| `minecraft:fire_resistant` | Fire resistance flag (marker) | `{}` |
+| `minecraft:unbreakable` | Unbreakable flag (no durability loss) | `{}` |
+| `minecraft:enchantments` | Item enchantments | `{"levels": {"minecraft:sharpness": 5}}` |
+| `minecraft:stored_enchantments` | Enchantments for enchanted books | `{"levels": {"minecraft:sharpness": 5}}` |
+| `minecraft:custom_name` | Custom display name | `{"text": "Legendary Sword"}` |
+| `minecraft:lore` | Item lore/description lines | `[{"text": "Line 1"}, {"text": "Line 2"}]` |
+| `minecraft:food` | Food properties | `{"nutrition": 8, "saturation_modifier": 0.6}` |
+| `minecraft:consumable` | Consumable properties (animation, cooldown) | `{"consume_seconds": 1.6, "animation": "drink"}` |
+| `minecraft:use_cooldown` | Cooldown between uses | `{"seconds": 5}` |
+| `minecraft:enchantable` | Maximum enchantment level | `{"value": 1}` |
+| `minecraft:repairable` | Items to repair with | `{"items": ["minecraft:iron_ingot"]}` |
+| `minecraft:dyed_color` | RGB dye color (for armor/leather) | `{"rgb": 16711680, "show_in_tooltip": true}` |
+| `minecraft:equippable` | Equippable slot and effects | `{"slot": "head", "camera_overlay": ""}` |
+| `minecraft:glider` | Glider/elytra properties | `{}` |
+| `minecraft:tool` | Tool mining rules and efficiency | `{"default_mining_speed": 1.0, "damage_per_block": 1}` |
+| `minecraft:weapon` | Weapon damage modifiers | `{"damage": 7.0}` |
+| `minecraft:can_break` | Can break blocks despite creative/adventure mode | `{"predicates": ["minecraft:dirt"]}` |
+| `minecraft:can_place_on` | Can place on blocks | `{"predicates": ["minecraft:stone"]}` |
+| `minecraft:tooltip_display` | Custom tooltip display | `{}` |
+| `minecraft:trim` | Armor trim | `{"material": "minecraft:iron", "pattern": "minecraft:coast"}` |
+| `minecraft:bundle_contents` | Bundle contents | `[{...}, {...}]` |
+| `minecraft:potion_contents` | Potion effects | `{"custom_color": 16711680}` |
+| `minecraft:suspicious_stew_effects` | Suspicious stew effects | `[{"effect": "minecraft:poison", "duration": 100}]` |
+| `minecraft:lock` | Lock state for containers | `{"key": ""}` |
+| `minecraft:fireworks` | Firework properties | `{"flight_duration": 1}` |
+| `minecraft:instrument` | Goat horn instrument | `{"sound_event": "minecraft:item.goat_horn.sound.0"}` |
+| `minecraft:recipes` | Unlocked recipes (knowledge book) | `["minecraft:crafting_table"]` |
+| `minecraft:lodestone_tracker` | Lodestone position tracker | `{}` |
+| `minecraft:creative_slot_lock` | Creative mode slot lock | `{}` |
+| `minecraft:intangible_projectile` | Projectile tangibility | `{}` |
+| `minecraft:item_model` | Custom item model override | `"minecraft:custom_models/special"` |
+| `minecraft:item_name` | Item component name override | `{"text": "Name"}` |
+
+**Note:** You can also use data components from other mods. Use `minecraft:` namespace for vanilla components or `modid:` for modded ones.
+
+### 5. Mod Compatibility 🧩
 StatTweaks is fully compatible with any mod that uses the standard Minecraft registry system. You can modify items, entities, and attributes from any other mod by using their full **Resource Location** (`modid:name`).
 
 #### Modded Example:

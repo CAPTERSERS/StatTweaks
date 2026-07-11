@@ -71,24 +71,24 @@ Modify the base attributes of any living creature.
 
 ### 3. Available Attributes (for Items and Entities)
 
-| Attribute ID | What it does | Min | Max | Default |
-|---|---|---|---|---|
-| `minecraft:generic.max_health` | Maximum health points | 0.0 | 1024.0 | 20.0 |
-| `minecraft:generic.movement_speed` | Walking/swimming speed | 0.0 | 1.0 | 0.1 |
-| `minecraft:generic.attack_damage` | Melee damage dealt | 0.0 | 2048.0 | 1.0 |
-| `minecraft:generic.attack_speed` | Attack cooldown (attacks per second) | 0.0 | 1024.0 | 4.0 |
-| `minecraft:generic.armor` | Armor defense points | 0.0 | 30.0 | 0.0 |
-| `minecraft:generic.armor_toughness` | Armor toughness (reduces damage from strong hits) | 0.0 | 20.0 | 0.0 |
-| `minecraft:generic.knockback_resistance` | Resistance to knockback | 0.0 | 1.0 | 0.0 |
-| `minecraft:generic.flying_speed` | Flight speed (for flying mobs/creative mode) | 0.0 | 1024.0 | 0.4 |
-| `minecraft:generic.follow_range` | Detection range for mobs | 0.0 | 2048.0 | 16.0 |
-| `minecraft:generic.luck` | Luck bonus (loot tables) | -1024.0 | 1024.0 | 0.0 |
-| `minecraft:generic.step_height` | Step height (how high the entity can climb) | 0.0 | 10.0 | 0.6 |
-| `minecraft:generic.water_movement_efficiency` | Water movement speed multiplier | 0.0 | 1.0 | 0.0 |
-| `minecraft:generic.burning_time_scale` | Fire damage frequency modifier | 0.0 | 1024.0 | 1.0 |
-| `minecraft:generic.explosion_knockback_resistance` | Reduces explosion knockback | 0.0 | 1.0 | 0.0 |
-| `minecraft:generic.temperature_modifier` | Temperature modifier for cold/heat effects | -1024.0 | 1024.0 | 0.0 |
-| `minecraft:horse.jump_strength` | Jump strength for horses | 0.0 | 2.0 | 0.7 |
+| Attribute ID | What it does | Example Value |
+|---|---|---|
+| `minecraft:generic.max_health` | Maximum health points | `40.0` |
+| `minecraft:generic.movement_speed` | Walking/swimming speed | `0.35` |
+| `minecraft:generic.attack_damage` | Melee damage dealt | `8.0` |
+| `minecraft:generic.attack_speed` | Attack cooldown (attacks per second) | `1.8` |
+| `minecraft:generic.armor` | Armor defense points | `10.0` |
+| `minecraft:generic.armor_toughness` | Armor toughness (reduces damage from strong hits) | `2.0` |
+| `minecraft:generic.knockback_resistance` | Resistance to knockback | `0.5` |
+| `minecraft:generic.flying_speed` | Flight speed (for flying mobs/creative mode) | `0.8` |
+| `minecraft:generic.follow_range` | Detection range for mobs | `32.0` |
+| `minecraft:generic.luck` | Luck bonus (loot tables) | `5.0` |
+| `minecraft:generic.step_height` | Step height (how high the entity can climb) | `1.5` |
+| `minecraft:generic.water_movement_efficiency` | Water movement speed multiplier | `0.8` |
+| `minecraft:generic.burning_time_scale` | Fire damage frequency modifier | `1.2` |
+| `minecraft:generic.explosion_knockback_resistance` | Reduces explosion knockback | `0.6` |
+| `minecraft:generic.temperature_modifier` | Temperature modifier for cold/heat effects | `2.0` |
+| `minecraft:horse.jump_strength` | Jump strength for horses | `1.5` |
 
 **Note:** You can also use attributes from other mods by using their ResourceLocation (e.g., `modid:custom_attribute`).
 
@@ -100,7 +100,6 @@ Modify the base attributes of any living creature.
 | `minecraft:max_damage` | Maximum durability | `1561` |
 | `minecraft:damage` | Current damage/durability left | `0` |
 | `minecraft:rarity` | Item rarity/color | `"rare"` (common, uncommon, rare, epic) |
-| `minecraft:fire_resistant` | Fire resistance flag (marker) | `{}` |
 | `minecraft:unbreakable` | Unbreakable flag (no durability loss) | `{}` |
 | `minecraft:enchantments` | Item enchantments | `{"levels": {"minecraft:sharpness": 5}}` |
 | `minecraft:stored_enchantments` | Enchantments for enchanted books | `{"levels": {"minecraft:sharpness": 5}}` |
@@ -118,20 +117,27 @@ Modify the base attributes of any living creature.
 | `minecraft:weapon` | Weapon damage modifiers | `{"damage": 7.0}` |
 | `minecraft:can_break` | Can break blocks despite creative/adventure mode | `{"predicates": ["minecraft:dirt"]}` |
 | `minecraft:can_place_on` | Can place on blocks | `{"predicates": ["minecraft:stone"]}` |
-| `minecraft:tooltip_display` | Custom tooltip display | `{}` |
-| `minecraft:trim` | Armor trim | `{"material": "minecraft:iron", "pattern": "minecraft:coast"}` |
-| `minecraft:bundle_contents` | Bundle contents | `[{...}, {...}]` |
-| `minecraft:potion_contents` | Potion effects | `{"custom_color": 16711680}` |
+| `minecraft:tooltip_display` | Custom tooltip display settings | `{}` |
+| `minecraft:trim` | Armor trim (pattern + material) | `{"material": "minecraft:iron", "pattern": "minecraft:coast"}` |
+| `minecraft:bundle_contents` | Bundle inventory contents | `[{...}, {...}]` |
+| `minecraft:potion_contents` | Potion effects and color | `{"custom_color": 16711680}` |
 | `minecraft:suspicious_stew_effects` | Suspicious stew effects | `[{"effect": "minecraft:poison", "duration": 100}]` |
 | `minecraft:lock` | Lock state for containers | `{"key": ""}` |
-| `minecraft:fireworks` | Firework properties | `{"flight_duration": 1}` |
-| `minecraft:instrument` | Goat horn instrument | `{"sound_event": "minecraft:item.goat_horn.sound.0"}` |
+| `minecraft:fireworks` | Firework burst properties | `{"flight_duration": 1}` |
+| `minecraft:instrument` | Goat horn instrument type | `{"sound_event": "minecraft:item.goat_horn.sound.0"}` |
 | `minecraft:recipes` | Unlocked recipes (knowledge book) | `["minecraft:crafting_table"]` |
 | `minecraft:lodestone_tracker` | Lodestone position tracker | `{}` |
-| `minecraft:creative_slot_lock` | Creative mode slot lock | `{}` |
-| `minecraft:intangible_projectile` | Projectile tangibility | `{}` |
+| `minecraft:creative_slot_lock` | Creative mode slot lock flag | `{}` |
+| `minecraft:intangible_projectile` | Projectile intangibility flag | `{}` |
 | `minecraft:item_model` | Custom item model override | `"minecraft:custom_models/special"` |
-| `minecraft:item_name` | Item component name override | `{"text": "Name"}` |
+| `minecraft:item_name` | Item name component override | `{"text": "Name"}` |
+| `minecraft:block_entity_data` | Block entity NBT data | `{...}` |
+| `minecraft:custom_data` | Custom NBT data storage | `{...}` |
+| `minecraft:entity_data` | Entity NBT data (e.g. egg variants) | `{...}` |
+| `minecraft:repair_cost` | Repair cost in anvil | `5` |
+| `minecraft:damage_resistant` | Damage resistance flag | `{}` |
+| `minecraft:death_protection` | Protection on death | `{}` |
+| `minecraft:tooltip_style` | Custom tooltip style | `"minecraft:style"` |
 
 **Note:** You can also use data components from other mods. Use `minecraft:` namespace for vanilla components or `modid:` for modded ones.
 

@@ -110,6 +110,7 @@ You can change how stats look in your inventory with the `"tooltip_mode"` option
 ## ⌨️ Commands
 
 - `/stattweaks reload`: Reloads the JSON file, applies changes on the server, and synchronizes them with all connected clients. (Requires permission level 2/OP).
+  - **Note for 1.21.9:** This command does not work correctly in this version. You must rejoin the world to apply changes.
 
 ---
 
@@ -126,3 +127,5 @@ You can change how stats look in your inventory with the `"tooltip_mode"` option
 - When using tags (`#`), values are applied additively.
 - Tools modified with `efficiency` automatically update their mining rules for the corresponding blocks.
 - If an item has already been created, some changes (like max durability) will apply visually, but the item's current damage might remain proportional.
+
+> **⚠️ Important for Minecraft 1.21.9:** The reload command does not work correctly in this version. You must exit and re-enter the world to apply any changes made to the JSON configuration.

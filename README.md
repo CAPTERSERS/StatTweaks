@@ -1,58 +1,128 @@
-# StatTweaks
+# 🎮 StatTweaks - Minecraft Stat Configuration Mod
 
-> **Power over your inventory.** Dynamically modify item attributes for Vanilla and Modded content.
+> **Total control over your game stats.** Dynamically modify attributes of items and entities from both Vanilla and other Mods.
 
-**StatTweaks** is a mod focused on dynamically modifying item attributes via a simple configuration file. Fully compatible with content from other mods, it allows you to easily adjust parameters such as damage, speed, durability, stack size, and reach.
+**StatTweaks** is a robust mod for Minecraft 1.21.1+ (available for **Fabric** and **NeoForge**) that allows you to adjust almost any game parameter through a single JSON configuration file. From sword damage to boss health or apple nutrition.
 
-Ideal for modpack creators looking for advanced balance tuning without writing code.
+Ideal for modpack creators looking for perfect balance without writing code.
 
-## 📊 Modifiable Attributes
-Below is the list of keys you can use in the config file, along with reference values to help you balance your items.
+---
 
-| Config Key | Description                               | Reference / Typical Range |
-| :--- |:------------------------------------------| :--- |
-| `damage` | The attack damage dealt to an entity.     | **Vanilla Hand:** 1.0 <br> **Diamond Sword:** 7.0 |
-| `speed` | Attack speed (attacks per second).        | **Slow (Axe):** ~0.8 - 1.0 <br> **Fast (Sword):** 1.6 <br> **Instant:** 4.0+ |
-| `reach` | Interaction distance for blocks/entities. | **Default:** ~4.5 - 5.0 |
-| `knockback` | Force used to push enemies away.          | **Default:** 0.0 <br> **Strong:** 1.0 - 3.0 |
-| `armor` | Defense points (1 point = half shield).   | **Iron Chest:** 6.0 <br> **Diamond Chest:** 8.0 |
-| `toughness` | Armor Toughness (high-damage resistance). | **Diamond:** 2.0 <br> **Netherite:** 3.0 |
-| `knockback_resistance`| Probability to resist being pushed back.  | **Range:** 0.0 (0%) to 1.0 (100%) <br> **Netherite:** 0.1 |
-| `movement_speed` | Speed modifier when wearing the item.     | **Warning:** Sensitive value! <br> **Default Player Speed:** ~0.1 |
-| `durability` | Max uses before breaking.                 | **Iron:** 250 <br> **Diamond:** 1561 |
-| `efficiency` | Mining speed for tools.                   | **Iron:** 6.0 <br> **Gold:** 12.0 |
-| `stack_size` | Max items per slot.                       | **Min:** 1 <br> **Max:** 64 |
+## ✨ Key Features
 
-> **⚠️ IMPORTANT NOTE:**
-> While some attribute changes may update instantly, **modifying core properties like `stack_size`, `durability`, or `efficiency` usually requires a complete Game Restart** to take effect correctly.
+- ✅ **Item Adjustments**: Modify damage, attack speed, durability, efficiency, stack size and more.
+- ✅ **Entity Adjustments**: Change max health, speed, attack damage and detection range of any mob.
+- ✅ **Data Components**: Full support for 1.20.5+ *Data Components* (rarity, food, fire resistance, etc.).
+- ✅ **Tag Support**: Apply changes to entire groups of items or entities using tags (e.g., `#minecraft:swords` or `#minecraft:skeletons`).
+- ✅ **Hot-Reload**: Use `/stattweaks reload` to apply changes instantly without restarting the game.
+- ✅ **Base Display Mode**: Option to see exact final values in tooltips instead of Minecraft's relative bonuses.
 
-## 🔮 Future Updates
-We are actively working on StatTweaks!
-* **More Attributes:** We plan to add support for additional attributes and mechanics in future versions.
-* Stay tuned for updates to expand your customization options.
+---
 
 ## ⚙️ Configuration
-The configuration uses a simple Key-Value JSON format located at `config/CPT_StatTweaks_Config.json`.
 
-You simply refer to the item by its **Registry Name** (e.g., `minecraft:diamond_sword`) and list the stats you want to change.
+The configuration file is located at `config/CPT_StatTweaks_Config.json`.
 
-**Example Configuration:**
+### General Structure
 ```json
 {
-  "minecraft:diamond_sword": {
-    "damage": 10.0,
-    "reach": 5.0,
-    "movement_speed": 0.6
+  "tooltip_mode": "relative",
+  "items": { ... },
+  "entities": { ... }
+}
+```
+
+### 1. Item Adjustments
+You can modify attributes and components. The mod prioritizes specific IDs over tags.
+
+#### Special Attributes:
+- `stattweaks:durability`: Maximum durability.
+- `stattweaks:efficiency`: Mining speed for tools.
+- `stattweaks:stack_size`: Maximum stack size (1-99).
+
+#### Item Example:
+```json
+"minecraft:diamond_axe": {
+  "attributes": {
+    "minecraft:generic.attack_damage": 15.0,
+    "stattweaks:durability": 3000,
+    "stattweaks:efficiency": 25.0
   },
-  "minecraft:ender_pearl": {
-    "stack_size": 64
-  },
-  "minecraft:iron_pickaxe": {
-    "efficiency": 12.0,
-    "durability": 1000
-  },
-  "alexsmobs:moose_chestplate": {
-    "armor": 8.0,
-    "knockback_resistance": 0.5
+  "components": {
+    "minecraft:rarity": "rare",
+    "minecraft:fire_resistant": {}
   }
 }
+```
+
+### 2. Entity Adjustments
+Modify the base attributes of any living creature.
+
+#### Entity Example:
+```json
+"minecraft:zombie": {
+  "attributes": {
+    "minecraft:generic.max_health": 40.0,
+    "minecraft:generic.movement_speed": 0.35,
+    "minecraft:generic.attack_damage": 8.0
+  }
+}
+```
+
+### 3. Mod Compatibility 🧩
+StatTweaks is fully compatible with any mod that uses the standard Minecraft registry system. You can modify items, entities, and attributes from any other mod by using their full **Resource Location** (`modid:name`).
+
+#### Modded Example:
+```json
+{
+  "items": {
+    "farmersdelight:iron_knife": {
+      "attributes": {
+        "minecraft:generic.attack_damage": 6.0,
+        "stattweaks:durability": 1200
+      }
+    }
+  },
+  "entities": {
+    "alexsmobs:grizzly_bear": {
+      "attributes": {
+        "minecraft:generic.max_health": 80.0,
+        "minecraft:generic.attack_damage": 12.0
+      }
+    }
+  }
+}
+```
+
+> **Note:** For other mods to be compatible, they must use the standard Minecraft Attribute and Data Component systems. Custom attributes from mods (e.g., `modid:custom_attribute`) are also supported.
+
+---
+
+## 📊 Tooltip Modes
+
+You can change how stats look in your inventory with the `"tooltip_mode"` option:
+
+- **`"relative"` (Default)**: Shows bonuses relative to an empty hand (e.g., `+9 Damage`).
+- **`"base"`**: Shows the absolute final value (e.g., `10 Damage`). It is much more intuitive to know the real power of an item.
+
+---
+
+## ⌨️ Commands
+
+- `/stattweaks reload`: Reloads the JSON file, applies changes on the server, and synchronizes them with all connected clients. (Requires permission level 2/OP).
+
+---
+
+## 🛠️ Installation and Requirements
+
+- **Version**: Minecraft 1.21.1
+- **Mod Loader**: Fabric (requires Fabric API) or NeoForge.
+- **Multiplayer**: Must be installed on both server and clients for correct stat and tooltip synchronization.
+
+---
+
+## 📝 Additional Notes
+
+- When using tags (`#`), values are applied additively.
+- Tools modified with `efficiency` automatically update their mining rules for the corresponding blocks.
+- If an item has already been created, some changes (like max durability) will apply visually, but the item's current damage might remain proportional.

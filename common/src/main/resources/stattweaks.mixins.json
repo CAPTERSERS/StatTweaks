@@ -6,7 +6,8 @@
   "client": [
   ],
   "mixins": [
-    "StatAccessor"
+    "StatAccessor",
+    "ItemStackMixin"
   ],
   "injectors": {
     "defaultRequire": 1

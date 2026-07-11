@@ -53,7 +53,30 @@ public class STEntityAttributeHandler {
 
             try {
                 ResourceLocation attributeId = ResourceLocation.parse(attributeIdString);
-                var attributeHolder = BuiltInRegistries.ATTRIBUTE.getHolder(attributeId);
+                var attributeHolder = BuiltInRegistries.ATTRIBUTE.get(attributeId);
+
+                if (attributeHolder.isEmpty()) {
+                    String targetPath = attributeId.getPath().toLowerCase();
+                    if (targetPath.startsWith("generic.")) {
+                        targetPath = targetPath.substring(8);
+                    }
+                    
+                    // Search registry by path
+                    for (ResourceLocation key : BuiltInRegistries.ATTRIBUTE.keySet()) {
+                        String keyPath = key.getPath().toLowerCase();
+                        if (keyPath.startsWith("generic.")) {
+                            keyPath = keyPath.substring(8);
+                        }
+                        
+                        if (keyPath.equals(targetPath)) {
+                            attributeHolder = BuiltInRegistries.ATTRIBUTE.get(key);
+                            if (attributeHolder.isPresent()) {
+                                LOGGER.info("Found attribute '{}' via fallback as '{}'", attributeIdString, key);
+                                break;
+                            }
+                        }
+                    }
+                }
 
                 if (attributeHolder.isPresent()) {
                     AttributeInstance attributeInstance = entity.getAttribute(attributeHolder.get());

@@ -56,6 +56,32 @@ public class ConfigLoader {
     }
 
     /**
+     * Parses a configuration string and returns a STConfig object.
+     *
+     * @param json The JSON string to parse
+     * @return A {@link STConfig} object, or null if parsing fails
+     */
+    public static STConfig parseConfigString(String json) {
+        try {
+            STConfig config = GSON.fromJson(json, STConfig.class);
+
+            if (config == null) {
+                LOGGER.error("Configuration string is empty or invalid");
+                return null;
+            }
+
+            // Ensure maps are initialized
+            if (config.items == null) config.items = new java.util.HashMap<>();
+            if (config.entities == null) config.entities = new java.util.HashMap<>();
+
+            return config;
+        } catch (Exception e) {
+            LOGGER.error("Failed to parse configuration string: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    /**
      * Parses the configuration file and returns a STConfig object.
      *
      * @param configFile The path to the configuration file

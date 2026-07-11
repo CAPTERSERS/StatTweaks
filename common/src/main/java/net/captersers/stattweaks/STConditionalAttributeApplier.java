@@ -161,7 +161,7 @@ public class STConditionalAttributeApplier {
 
             try {
                 ResourceLocation attributeId = ResourceLocation.parse(attributeIdString);
-                Holder<Attribute> attributeHolder = net.minecraft.core.registries.BuiltInRegistries.ATTRIBUTE.getHolder(attributeId).orElse(null);
+                Holder<Attribute> attributeHolder = net.minecraft.core.registries.BuiltInRegistries.ATTRIBUTE.get(attributeId).orElse(null);
 
                 if (attributeHolder != null) {
                     // Pass the Holder<Attribute> directly to getAttribute (mapping expects a Holder)

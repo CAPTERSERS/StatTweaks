@@ -16,7 +16,6 @@ import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.component.Tool;
@@ -64,7 +63,7 @@ public class ItemProcessor {
 
             // Apply attributes (including special ones like durability, efficiency)
             if (itemConfig.attributes != null && !itemConfig.attributes.isEmpty()) {
-                injectAttributeModifiers(item, itemConfig.attributes, newMapBuilder);
+                injectAttributeModifiers(item, itemConfig.attributes, newMapBuilder, currentMap);
             }
 
             // Apply data components (rarity, food, fire_resistant, etc.)
@@ -85,16 +84,17 @@ public class ItemProcessor {
     /**
      * Injects attribute modifiers into the item's component map.
      */
-    private static void injectAttributeModifiers(Item item, Map<String, Double> attributes, DataComponentMap.Builder newMapBuilder) {
-        ItemAttributeModifiers originalModifiers = newMapBuilder.build().get(DataComponents.ATTRIBUTE_MODIFIERS);
+    private static void injectAttributeModifiers(Item item, Map<String, Double> attributes, DataComponentMap.Builder newMapBuilder, DataComponentMap currentMap) {
+        ItemAttributeModifiers originalModifiers = currentMap.get(DataComponents.ATTRIBUTE_MODIFIERS);
         if (originalModifiers == null) {
             originalModifiers = ItemAttributeModifiers.EMPTY;
         }
 
         ItemAttributeModifiers.Builder attrBuilder = ItemAttributeModifiers.builder();
         Map<Holder<Attribute>, Double> standardAttributes = new HashMap<>();
+        Set<ResourceLocation> overriddenAttributes = new HashSet<>();
         
-        // Handle special attributes first
+        // Handle special attributes and resolve standard ones
         for (Map.Entry<String, Double> entry : attributes.entrySet()) {
             String key = entry.getKey();
             double value = entry.getValue();
@@ -102,11 +102,12 @@ public class ItemProcessor {
             if ("stattweaks:durability".equals(key)) {
                 newMapBuilder.set(DataComponents.MAX_DAMAGE, (int) value);
             } else if ("stattweaks:efficiency".equals(key)) {
-                applyToolEfficiency(item, value, newMapBuilder);
+                applyToolEfficiency(item, value, newMapBuilder, currentMap);
             } else {
                 Holder<Attribute> attribute = resolveAttribute(key);
                 if (attribute != null) {
                     standardAttributes.put(attribute, value);
+                    attribute.unwrapKey().ifPresent(k -> overriddenAttributes.add(k.location()));
                 }
             }
         }
@@ -114,10 +115,24 @@ public class ItemProcessor {
         // Determine equipment slot based on item type
         EquipmentSlotGroup slotGroup = determineEquipmentSlot(item);
 
-        // Retain modifiers that are NOT being overridden (both vanilla and previous tags)
+        // Retain modifiers that are NOT being overridden
         for (ItemAttributeModifiers.Entry entry : originalModifiers.modifiers()) {
-            if (!standardAttributes.containsKey(entry.attribute())) {
+            ResourceLocation entryAttrLoc = entry.attribute().unwrapKey()
+                    .map(net.minecraft.resources.ResourceKey::location)
+                    .orElse(null);
+            
+            boolean isOverridden = false;
+            if (entryAttrLoc != null) {
+                isOverridden = overriddenAttributes.contains(entryAttrLoc);
+            } else {
+                // Fallback for direct holders if key is missing
+                isOverridden = standardAttributes.containsKey(entry.attribute());
+            }
+
+            if (!isOverridden) {
                 attrBuilder.add(entry.attribute(), entry.modifier(), entry.slot());
+            } else {
+                LOGGER.debug("Overriding vanilla modifier for {} on {}", entryAttrLoc, item);
             }
         }
 
@@ -129,31 +144,35 @@ public class ItemProcessor {
             double internalValue = calculateInternalValue(item, attribute, targetValue);
             AttributeModifier.Operation operation = determineOperation(attribute);
 
-            // Generate a unique ID for this modifier to avoid collisions with other equipped items
+            // Generate a unique ID for this modifier
             ResourceLocation modifierId = generateModifierId(item, attribute);
 
             attrBuilder.add(attribute,
                     new AttributeModifier(modifierId, internalValue, operation),
                     slotGroup);
+            
+            if (attribute.is(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE)) {
+                LOGGER.info("Item {}: Applied attack damage modifier {} (Total Target: {})", item, internalValue, internalValue + 1.0);
+            }
         }
 
-        // Set the final attribute modifiers component, with tooltip setting based on config
-        boolean showInTooltip = !"base".equals(net.captersers.stattweaks.manager.STBalanceManager.getTooltipMode());
-        newMapBuilder.set(DataComponents.ATTRIBUTE_MODIFIERS, attrBuilder.build().withTooltip(showInTooltip));
+        ItemAttributeModifiers finalModifiers = attrBuilder.build();
+        newMapBuilder.set(DataComponents.ATTRIBUTE_MODIFIERS, finalModifiers);
+        LOGGER.info("Applied {} attribute modifiers to {}", standardAttributes.size(), item);
     }
 
     /**
      * Specialized logic for tool efficiency.
      */
-    private static void applyToolEfficiency(Item item, double value, DataComponentMap.Builder newMapBuilder) {
-        Tool tool = newMapBuilder.build().get(DataComponents.TOOL);
+    private static void applyToolEfficiency(Item item, double value, DataComponentMap.Builder newMapBuilder, DataComponentMap currentMap) {
+        Tool tool = currentMap.get(DataComponents.TOOL);
         if (tool != null) {
             List<Tool.Rule> newRules = new ArrayList<>();
             for (Tool.Rule rule : tool.rules()) {
                 newRules.add(new Tool.Rule(rule.blocks(), Optional.of((float) value), rule.correctForDrops()));
             }
-            newMapBuilder.set(DataComponents.TOOL, new Tool(newRules, (float) value, tool.damagePerBlock()));
-            LOGGER.debug("Updated tool efficiency rules for {}", item);
+            newMapBuilder.set(DataComponents.TOOL, new Tool(newRules, (float) value, tool.damagePerBlock(), true));
+            LOGGER.info("Updated tool efficiency for {}: {} rules", item, newRules.size());
         }
     }
 
@@ -167,22 +186,63 @@ public class ItemProcessor {
 
             try {
                 ResourceLocation componentId = ResourceLocation.parse(componentIdString);
-                DataComponentType<?> componentType = BuiltInRegistries.DATA_COMPONENT_TYPE.get(componentId);
+                
+                // Try to get the component from the registry. 
+                // In some versions Registry.get returns Optional, in others it returns T.
+                // Our previous fixes suggest it returns Optional<Holder.Reference<T>> in this environment.
+                DataComponentType<?> componentType = BuiltInRegistries.DATA_COMPONENT_TYPE.get(componentId)
+                        .map(Holder::value)
+                        .orElse(null);
+
+                if (componentType == null) {
+                    // Try to find it by path only (case-insensitive fallback)
+                    String targetPath = componentId.getPath().toLowerCase();
+                    LOGGER.warn("Component '{}' not found. Searching registry (size: {})...", componentIdString, BuiltInRegistries.DATA_COMPONENT_TYPE.keySet().size());
+                    
+                    for (ResourceLocation key : BuiltInRegistries.DATA_COMPONENT_TYPE.keySet()) {
+                        String keyPath = key.getPath().toLowerCase();
+                        if (keyPath.equals(targetPath) || 
+                            keyPath.equals(targetPath.replace("_resistant", "_resistance")) ||
+                            keyPath.equals(targetPath.replace("_resistance", "_resistant")) ||
+                            keyPath.equals("is_" + targetPath) ||
+                            targetPath.endsWith(keyPath) ||
+                            keyPath.endsWith(targetPath)) {
+                            
+                            componentType = BuiltInRegistries.DATA_COMPONENT_TYPE.get(key)
+                                    .map(Holder::value)
+                                    .orElse(null);
+                            if (componentType != null) {
+                                LOGGER.info("Found component '{}' via fallback as '{}'", componentIdString, key);
+                                break;
+                            }
+                        }
+                    }
+                }
 
                 if (componentType == null) {
                     LOGGER.error("Unknown data component '{}' for item {}", componentIdString, item);
+                    
+                    // Log all components once if this happens, to help identify the correct names
+                    if (BuiltInRegistries.DATA_COMPONENT_TYPE.keySet().size() > 0) {
+                        List<String> allKeys = BuiltInRegistries.DATA_COMPONENT_TYPE.keySet().stream()
+                                .map(ResourceLocation::toString)
+                                .sorted()
+                                .toList();
+                        LOGGER.info("Available DataComponentTypes: {}", String.join(", ", allKeys));
+                    }
                     continue;
                 }
 
-                var codec = componentType.codecOrThrow();
+                final DataComponentType<?> finalComponentType = componentType;
+                var codec = finalComponentType.codecOrThrow();
                 JsonElement componentJsonElement = GSON.toJsonTree(jsonValue);
                 var parseResult = codec.parse(JsonOps.INSTANCE, componentJsonElement);
                 
                 parseResult.result().ifPresent(parsedValue -> {
                     @SuppressWarnings("unchecked")
-                    DataComponentType<Object> typedComponentType = (DataComponentType<Object>) componentType;
+                    DataComponentType<Object> typedComponentType = (DataComponentType<Object>) finalComponentType;
                     newMapBuilder.set(typedComponentType, parsedValue);
-                    LOGGER.debug("Applied data component {} to {}", componentIdString, item);
+                    LOGGER.info("Applied data component {} to {}", componentIdString, item);
                 });
                 
                 if (parseResult.error().isPresent()) {
@@ -194,8 +254,39 @@ public class ItemProcessor {
         }
     }
 
-    private static Holder<Attribute> resolveAttribute(String id) {
-        return BuiltInRegistries.ATTRIBUTE.getHolder(ResourceLocation.parse(id)).orElse(null);
+    public static Holder<Attribute> resolveAttribute(String idString) {
+        ResourceLocation id = ResourceLocation.parse(idString);
+        var holder = BuiltInRegistries.ATTRIBUTE.get(id);
+        
+        if (holder.isEmpty()) {
+            String targetPath = id.getPath().toLowerCase();
+            if (targetPath.startsWith("generic.")) {
+                targetPath = targetPath.substring(8);
+            }
+            
+            // Search registry by path
+            for (ResourceLocation key : BuiltInRegistries.ATTRIBUTE.keySet()) {
+                String keyPath = key.getPath().toLowerCase();
+                if (keyPath.startsWith("generic.")) {
+                    keyPath = keyPath.substring(8);
+                }
+                
+                if (keyPath.equals(targetPath)) {
+                    holder = BuiltInRegistries.ATTRIBUTE.get(key);
+                    if (holder.isPresent()) {
+                        LOGGER.info("Found attribute '{}' via fallback as '{}'", idString, key);
+                        break;
+                    }
+                }
+            }
+        }
+        
+        if (holder.isEmpty()) {
+            LOGGER.error("Unknown attribute '{}'. Available attributes: {}", idString, 
+                    BuiltInRegistries.ATTRIBUTE.keySet().stream().map(ResourceLocation::toString).toList());
+        }
+        
+        return holder.orElse(null);
     }
 
     private static double calculateInternalValue(Item item, Holder<Attribute> attribute, double targetValue) {
@@ -216,15 +307,14 @@ public class ItemProcessor {
     }
 
     private static EquipmentSlotGroup determineEquipmentSlot(Item item) {
-        if (item instanceof ArmorItem armor) {
-            return switch (armor.getType()) {
-                case HELMET -> EquipmentSlotGroup.HEAD;
-                case CHESTPLATE -> EquipmentSlotGroup.CHEST;
-                case LEGGINGS -> EquipmentSlotGroup.LEGS;
-                case BOOTS -> EquipmentSlotGroup.FEET;
-                case BODY -> EquipmentSlotGroup.BODY;
-            };
-        }
+        // Use string-based detection as a robust fallback since ArmorItem class location varies between versions/mappings
+        String path = BuiltInRegistries.ITEM.getKey(item).getPath();
+        if (path.contains("helmet")) return EquipmentSlotGroup.HEAD;
+        if (path.contains("chestplate")) return EquipmentSlotGroup.CHEST;
+        if (path.contains("leggings")) return EquipmentSlotGroup.LEGS;
+        if (path.contains("boots")) return EquipmentSlotGroup.FEET;
+        if (path.contains("horse_armor")) return EquipmentSlotGroup.BODY;
+        
         return EquipmentSlotGroup.MAINHAND;
     }
 

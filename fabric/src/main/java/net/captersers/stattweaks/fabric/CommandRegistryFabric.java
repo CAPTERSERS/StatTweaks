@@ -16,16 +16,17 @@ public final class CommandRegistryFabric {
                     .requires(source -> source.hasPermission(2))
                     .executes(ctx -> {
                         CommandSourceStack source = ctx.getSource();
-                        try {
-                            // perform reload on server thread
-                            source.getServer().execute(() -> {
-                                ConfigSyncPayload payload = STConfigReloader.performReload();
+                        // perform reload on server thread
+                        source.getServer().execute(() -> {
+                            try {
+                                ConfigSyncPayload payload = STConfigReloader.performReload(source.getServer());
                                 FabricNetwork.sendConfigToAll(source.getServer(), payload);
                                 source.sendSuccess(() -> Component.literal("StatTweaks: configuración recargada y sincronizada."), true);
-                            });
-                        } catch (Exception e) {
-                            source.sendFailure(Component.literal("Error al recargar StatTweaks: " + e.getMessage()));
-                        }
+                            } catch (Exception e) {
+                                source.sendFailure(Component.literal("Error al recargar StatTweaks: " + e.getMessage()));
+                                e.printStackTrace();
+                            }
+                        });
                         return 1;
                     })
                 )

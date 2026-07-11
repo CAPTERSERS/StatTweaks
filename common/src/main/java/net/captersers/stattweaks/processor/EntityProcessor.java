@@ -1,9 +1,13 @@
 package net.captersers.stattweaks.processor;
 
 import net.captersers.stattweaks.config.STEntityConfig;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,8 +64,36 @@ public class EntityProcessor {
                 return false;
             }
 
+            // Clean up attribute IDs (fallback for generic. prefix and namespace issues)
+            Map<String, Double> cleanedAttributes = new HashMap<>();
+            config.attributes.forEach((attrId, value) -> {
+                ResourceLocation rl = ResourceLocation.parse(attrId);
+                var holder = BuiltInRegistries.ATTRIBUTE.get(rl);
+                
+                if (holder.isEmpty()) {
+                    String targetPath = rl.getPath().toLowerCase();
+                    if (targetPath.startsWith("generic.")) {
+                        targetPath = targetPath.substring(8);
+                    }
+                    
+                    for (ResourceLocation key : BuiltInRegistries.ATTRIBUTE.keySet()) {
+                        String keyPath = key.getPath().toLowerCase();
+                        if (keyPath.startsWith("generic.")) {
+                            keyPath = keyPath.substring(8);
+                        }
+                        
+                        if (keyPath.equals(targetPath)) {
+                            LOGGER.info("Redirecting entity attribute '{}' to '{}'", attrId, key);
+                            cleanedAttributes.put(key.toString(), value);
+                            return;
+                        }
+                    }
+                }
+                cleanedAttributes.put(attrId, value);
+            });
+
             // Store the configuration for later application (additive)
-            ENTITY_ATTRIBUTE_MODS.computeIfAbsent(resourceLocation, k -> new HashMap<>()).putAll(config.attributes);
+            ENTITY_ATTRIBUTE_MODS.computeIfAbsent(resourceLocation, k -> new HashMap<>()).putAll(cleanedAttributes);
             LOGGER.debug("Registered attribute configuration for entity type: {}", entityTypeId);
             return true;
 
@@ -103,6 +135,39 @@ public class EntityProcessor {
     public static Map<String, Double> getModificationsForEntityType(ResourceLocation entityTypeId) {
         Map<String, Double> mods = ENTITY_ATTRIBUTE_MODS.get(entityTypeId);
         return mods != null ? java.util.Collections.unmodifiableMap(mods) : java.util.Collections.emptyMap();
+    }
+
+    /**
+     * Applies registered modifications to a living entity instance.
+     * Used for refreshing existing entities during hot-reload.
+     *
+     * @param entity The entity to refresh
+     */
+    public static void applyToEntity(LivingEntity entity) {
+        if (entity == null) return;
+        
+        ResourceLocation entityId = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
+        Map<String, Double> mods = getModificationsForEntityType(entityId);
+        
+        if (mods.isEmpty()) return;
+
+        mods.forEach((attrId, value) -> {
+            Holder<Attribute> attribute = ItemProcessor.resolveAttribute(attrId);
+            if (attribute != null) {
+                AttributeInstance instance = entity.getAttribute(attribute);
+                if (instance != null) {
+                    double oldValue = instance.getBaseValue();
+                    instance.setBaseValue(value);
+                    
+                    // If we modified max health, we might want to heal the entity if it was at full health
+                    if (attribute.is(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH)) {
+                        if (entity.getHealth() >= (float) oldValue || entity.getHealth() > value.floatValue()) {
+                            entity.setHealth(value.floatValue());
+                        }
+                    }
+                }
+            }
+        });
     }
 
     /**

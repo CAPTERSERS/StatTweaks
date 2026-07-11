@@ -14,6 +14,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.component.TooltipDisplay;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -30,7 +31,7 @@ import java.util.function.Consumer;
 public abstract class ItemStackMixin {
 
     @Inject(method = "addAttributeTooltips", at = @At("HEAD"), cancellable = true)
-    private void stattweaks$cancelAttributeTooltips(Consumer<Component> consumer, Player player, CallbackInfo ci) {
+    private void stattweaks$cancelAttributeTooltips(Consumer<Component> consumer, TooltipDisplay display, Player player, CallbackInfo ci) {
         if ("base".equals(STBalanceManager.getTooltipMode())) {
             ci.cancel();
         }

@@ -25,20 +25,17 @@ public final class CommandRegistryNeoForge {
                     .requires(source -> source.hasPermission(2))
                     .executes(ctx -> {
                         CommandSourceStack source = ctx.getSource();
-                        try {
-                            // perform reload on server thread to ensure thread safety
-                            source.getServer().execute(() -> {
-                                try {
-                                    ConfigSyncPayload payload = STConfigReloader.performReload();
-                                    NeoForgeNetwork.sendConfigToAll(source.getServer(), payload);
-                                    source.sendSuccess(() -> Component.literal("StatTweaks: configuración recargada y sincronizada."), true);
-                                } catch (Exception e) {
-                                    source.sendFailure(Component.literal("Error al recargar StatTweaks: " + e.getMessage()));
-                                }
-                            });
-                        } catch (Exception e) {
-                            source.sendFailure(Component.literal("Error al programar la recarga: " + e.getMessage()));
-                        }
+                        // perform reload on server thread to ensure thread safety
+                        source.getServer().execute(() -> {
+                            try {
+                                ConfigSyncPayload payload = STConfigReloader.performReload(source.getServer());
+                                NeoForgeNetwork.sendConfigToAll(source.getServer(), payload);
+                                source.sendSuccess(() -> Component.literal("StatTweaks: configuración recargada y sincronizada."), true);
+                            } catch (Exception e) {
+                                source.sendFailure(Component.literal("Error al recargar StatTweaks: " + e.getMessage()));
+                                e.printStackTrace();
+                            }
+                        });
                         return 1;
                     })
                 )

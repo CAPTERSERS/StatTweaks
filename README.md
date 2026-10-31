@@ -1,29 +1,48 @@
-# 🎮 StatTweaks - Minecraft Stat Configuration Mod
+# StatTweaks — Minecraft 1.21.9
 
-> **Total control over your game stats.** Dynamically modify attributes of items and entities from both Vanilla and other Mods.
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.9-6F4E37?labelColor=5A8F32)](https://www.minecraft.net/)
+[![Architectury](https://img.shields.io/badge/Architectury-18.0.5-000000?labelColor=F05020)](https://github.com/architectury/architectury-api)
+[![Fabric API](https://img.shields.io/badge/Fabric%20API-0.134.0%2B1.21.9-303020?labelColor=C8C4A0)](https://fabricmc.net/)
+[![NeoForge](https://img.shields.io/badge/NeoForge-21.9.9--beta-222427?labelColor=D7742F)](https://neoforged.net/)
 
-**StatTweaks** is a robust mod for Minecraft 1.21.1+ (available for **Fabric** and **NeoForge**) that allows you to adjust almost any game parameter through a single JSON configuration file. From sword damage to boss health or apple nutrition.
+This README is the source for Minecraft 1.21.9. The project summary is on [`main`](https://github.com/CAPTERSERS/StatTweaks/tree/main). The changelog for this branch is [`CHANGELOG.md`](CHANGELOG.md).
 
-Ideal for modpack creators looking for perfect balance without writing code.
+StatTweaks is a Fabric and NeoForge mod for adjusting item and entity attributes with a JSON file, without leaving the vanilla registry.
 
----
+## Requirements
 
-## ✨ Key Features
+From `gradle.properties` on this branch:
 
-- ✅ **Item Adjustments**: Modify damage, attack speed, durability, efficiency, stack size and more.
-- ✅ **Entity Adjustments**: Change max health, speed, attack damage and detection range of any mob.
-- ✅ **Data Components**: Full support for 1.20.5+ *Data Components* (rarity, food, fire resistance, etc.).
-- ✅ **Tag Support**: Apply changes to entire groups of items or entities using tags (e.g., `#minecraft:swords` or `#minecraft:skeletons`).
-- ✅ **Hot-Reload**: Use `/stattweaks reload` to apply changes instantly without restarting the game.
-- ✅ **Base Display Mode**: Option to see exact final values in tooltips instead of Minecraft's relative bonuses.
+- Minecraft 1.21.9
+- Architectury API 18.0.5
+- Fabric API 0.134.0+1.21.9
+- NeoForge 21.9.9-beta
 
----
+`build.gradle` compiles with Java 21. Multiplayer needs the mod on the server and on every client so stats and tooltips stay in sync.
 
-## ⚙️ Configuration
+## Build
 
-The configuration file is located at `config/CPT_StatTweaks_Config.json`.
+This branch has `settings.gradle`, `build.gradle`, and `gradle/wrapper/gradle-wrapper.properties`. That properties file pins Gradle 8.12.1. There is no `gradlew` or `gradlew.bat`.
 
-### General Structure
+```bash
+git clone -b 1.21.9 https://github.com/CAPTERSERS/StatTweaks.git
+cd StatTweaks
+```
+
+With Gradle 8.12.1 on your PATH:
+
+```bash
+gradle build
+```
+
+Jars are written to `fabric/build/libs` and `neoforge/build/libs`.
+
+## Configuration
+
+The configuration file is `config/CPT_StatTweaks_Config.json`.
+
+### General structure
+
 ```json
 {
   "tooltip_mode": "relative",
@@ -32,15 +51,18 @@ The configuration file is located at `config/CPT_StatTweaks_Config.json`.
 }
 ```
 
-### 1. Item Adjustments
+### 1. Item adjustments
+
 You can modify attributes and components. The mod prioritizes specific IDs over tags.
 
-#### Special Attributes:
-- `stattweaks:durability`: Maximum durability.
-- `stattweaks:efficiency`: Mining speed for tools.
-- `stattweaks:stack_size`: Maximum stack size (1-99).
+#### Special attributes
 
-#### Item Example:
+- `stattweaks:durability`: maximum durability.
+- `stattweaks:efficiency`: mining speed for tools.
+- `stattweaks:stack_size`: maximum stack size (1-99).
+
+#### Item example
+
 ```json
 "minecraft:diamond_axe": {
   "attributes": {
@@ -55,10 +77,12 @@ You can modify attributes and components. The mod prioritizes specific IDs over 
 }
 ```
 
-### 2. Entity Adjustments
+### 2. Entity adjustments
+
 Modify the base attributes of any living creature.
 
-#### Entity Example:
+#### Entity example
+
 ```json
 "minecraft:zombie": {
   "attributes": {
@@ -69,10 +93,12 @@ Modify the base attributes of any living creature.
 }
 ```
 
-### 3. Mod Compatibility 🧩
-StatTweaks is fully compatible with any mod that uses the standard Minecraft registry system. You can modify items, entities, and attributes from any other mod by using their full **Resource Location** (`modid:name`).
+### 3. Mod compatibility
 
-#### Modded Example:
+StatTweaks works with any mod that uses the standard Minecraft registry. Refer to items, entities, and attributes by their full resource location (`modid:name`).
+
+#### Modded example
+
 ```json
 {
   "items": {
@@ -94,35 +120,26 @@ StatTweaks is fully compatible with any mod that uses the standard Minecraft reg
 }
 ```
 
-> **Note:** For other mods to be compatible, they must use the standard Minecraft Attribute and Data Component systems. Custom attributes from mods (e.g., `modid:custom_attribute`) are also supported.
+Other mods need to use the standard Minecraft attribute and data component systems. Custom attributes (`modid:custom_attribute`) are supported.
 
----
+## Tooltip modes
 
-## 📊 Tooltip Modes
+`tooltip_mode` controls how stats appear in the inventory:
 
-You can change how stats look in your inventory with the `"tooltip_mode"` option:
+- `"relative"` (default): bonuses relative to an empty hand, for example `+9 Damage`.
+- `"base"`: the absolute final value, for example `10 Damage`.
 
-- **`"relative"` (Default)**: Shows bonuses relative to an empty hand (e.g., `+9 Damage`).
-- **`"base"`**: Shows the absolute final value (e.g., `10 Damage`). It is much more intuitive to know the real power of an item.
+## Commands
 
----
+- `/stattweaks reload` does not apply changes on Minecraft 1.21.9. Leave the world and rejoin to apply the JSON configuration.
 
-## ⌨️ Commands
+## Additional notes
 
-- `/stattweaks reload`: Reloads the JSON file, applies changes on the server, and synchronizes them with all connected clients. (Requires permission level 2/OP).
+- Tag values (`#`) are applied additively.
+- Tools modified with `efficiency` update their mining rules for the corresponding blocks.
+- If an item already exists, some changes (such as max durability) apply visually, while the item's current damage can stay proportional.
+- On Minecraft 1.21.9 the reload command does not work. Rejoin the world to apply JSON changes.
 
----
+## License
 
-## 🛠️ Installation and Requirements
-
-- **Version**: Minecraft 1.21.1
-- **Mod Loader**: Fabric (requires Fabric API) or NeoForge.
-- **Multiplayer**: Must be installed on both server and clients for correct stat and tooltip synchronization.
-
----
-
-## 📝 Additional Notes
-
-- When using tags (`#`), values are applied additively.
-- Tools modified with `efficiency` automatically update their mining rules for the corresponding blocks.
-- If an item has already been created, some changes (like max durability) will apply visually, but the item's current damage might remain proportional.
+Code: MIT. See [`LICENSE`](LICENSE).

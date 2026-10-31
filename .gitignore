@@ -39,6 +39,7 @@ Thumbs.db
 
 # Local configuration
 local.properties
+.vscode/
 
 # Run directories
 run/
